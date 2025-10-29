@@ -1,20 +1,26 @@
 <?php
+// Databaseinnstillinger
 $host = "b-studentsql-1.usn.no";
-$user = "shayo1243";      // brukernavnet ditt
-$pass = "5791shayo1243";  // skriv inn passordet ditt her
-$db   = "shayo1243";      // databasenavn (samme som brukernavnet ditt)
+$user = "shayo1243";
+$pass = "5791shayo1243";
+$db   = "shayo1243";
 
-// Koble til databasen
+// Forsøk å koble til databasen
 $conn = new mysqli($host, $user, $pass, $db);
 
 // Sjekk om tilkoblingen fungerer
 if ($conn->connect_error) {
-    die("Tilkoblingsfeil: " . $conn->connect_error);
+    // Feilmelding til utvikler, ikke bruk dette på en live nettside
+    die("Tilkoblingsfeil: (" . $conn->connect_errno . ") " . $conn->connect_error);
 }
 
-// Sett korrekt tegnsett (valgfritt, men anbefalt)
-$conn->set_charset('utf8mb4');
+// Sett korrekt tegnsett
+if (!$conn->set_charset("utf8mb4")) {
+    // Gi beskjed hvis tegnsett ikke kan settes
+    die("Feil ved innstilling av tegnsett: " . $conn->error);
+}
 
-// Hvis du vil teste at alt virker:
-// echo "Koblet til databasen!";
-?>
+// Hvis alt fungerer
+echo "Koblet til databasen!";
+
+// NB: Ingen avsluttende PHP-tagg for å unngå utilsiktet whitespace
