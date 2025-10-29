@@ -1,31 +1,49 @@
-<?php include "db.php"; ?>
-=======
 <?php
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/db.php'; // Sørger for at db.php lastes fra samme mappe
 
-$msg = null; $err = null;
+$msg = null;
+$err = null;
 
+// Behandle POST-forespørsel
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $klassekode = $_POST['klassekode'] ?? '';
+
     if ($klassekode !== '') {
-        $stmt = $conn->prepare("DELETE FROM klasse WHERE klassekode = ?");
+        // Sjekk om klassen har studenter
+        $stmt = $conn->prepare("SELECT COUNT(*) FROM student WHERE klassekode = ?");
         $stmt->bind_param("s", $klassekode);
-        try {
-            $stmt->execute();
-            $msg = "Klasse slettet.";
-        } catch (mysqli_sql_exception $e) {
-            $err = "Kunne ikke slette (har kanskje studenter knyttet?): " . htmlspecialchars($e->getMessage());
-        }
+        $stmt->execute();
+        $stmt->bind_result($antall);
+        $stmt->fetch();
         $stmt->close();
+
+        if ($antall > 0) {
+            $err = "Kan ikke slette (".$antall." student(er) i klassen).";
+        } else {
+            // Slett klassen
+            $stmt = $conn->prepare("DELETE FROM klasse WHERE klassekode = ?");
+            $stmt->bind_param("s", $klassekode);
+            try {
+                $stmt->execute();
+                $msg = ($stmt->affected_rows > 0) ? "Klassen er slettet." : "Fant ingen slik klasse.";
+            } catch (mysqli_sql_exception $e) {
+                $err = "Kunne ikke slette: " . htmlspecialchars($e->getMessage());
+            }
+            $stmt->close();
+        }
+    } else {
+        $err = "Velg en klasse.";
     }
 }
+
+// Hent alle klasser for dropdown
 $klasser = $conn->query("SELECT klassekode, klassenavn FROM klasse ORDER BY klassekode");
 ?>
->>>>>>> 622d0cd9e7c88719d65b331815060f96c70c3592
 <!doctype html>
 <html lang="no">
 <head>
-<meta charset="utf-8"><title>Slett klasse</title>
+<meta charset="utf-8">
+<title>Slett klasse</title>
 <style>
   body{font-family:system-ui,Arial;margin:0;background:#f5f6fa;color:#222;padding:30px}
   .form{max-width:420px;margin:auto;background:#fff;border:1px solid #e6e8ec;border-radius:10px;padding:20px 24px;box-shadow:0 2px 5px rgba(0,0,0,.06)}
@@ -44,34 +62,18 @@ $klasser = $conn->query("SELECT klassekode, klassenavn FROM klasse ORDER BY klas
 <body>
 <div class="form">
   <h2>Slett klasse</h2>
+
   <?php
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-      $kode = $_POST["klassekode"] ?? "";
-      if ($kode === "") {
-        echo "<div class='msg err'>Velg en klasse.</div>";
-      } else {
-        // ikke slett hvis klassen har studenter
-        $c = $conn->prepare("SELECT COUNT(*) FROM student WHERE klassekode=?");
-        $c->bind_param("s", $kode); $c->execute(); $c->bind_result($ant); $c->fetch(); $c->close();
-        if ($ant > 0) {
-          echo "<div class='msg warn'>Kan ikke slette (".$ant." student(er) i klassen).</div>";
-        } else {
-          $d = $conn->prepare("DELETE FROM klasse WHERE klassekode=?");
-          $d->bind_param("s", $kode); $d->execute();
-          echo ($d->affected_rows > 0)
-            ? "<div class='msg ok'>Klassen er slettet.</div>"
-            : "<div class='msg warn'>Fant ingen slik klasse.</div>";
-        }
-      }
-    }
+    if ($msg) echo "<div class='msg ok'>$msg</div>";
+    if ($err) echo "<div class='msg warn'>$err</div>";
   ?>
+
   <form method="post" onsubmit="return confirm('Slette valgt klasse?')">
     <label for="klassekode">Velg klasse</label>
     <select id="klassekode" name="klassekode" required>
       <option value="">Velg klasse</option>
       <?php
-        $r = $conn->query("SELECT klassekode, klassenavn FROM klasse ORDER BY klassekode");
-        while ($x = $r->fetch_assoc()) {
+        while ($x = $klasser->fetch_assoc()) {
           $k = htmlspecialchars($x['klassekode']);
           $n = htmlspecialchars($x['klassenavn']);
           echo "<option value=\"$k\">$k – $n</option>";
@@ -80,6 +82,7 @@ $klasser = $conn->query("SELECT klassekode, klassenavn FROM klasse ORDER BY klas
     </select>
     <button>Slett</button>
   </form>
+
   <p class="link"><a href="index.php">← Tilbake</a></p>
 </div>
 </body>
