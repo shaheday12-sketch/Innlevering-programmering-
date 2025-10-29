@@ -1,6 +1,6 @@
 <?php
 // Inkluder db.php fra samme mappe
-include(__DIR__ . '/db.php');
+include 'db.php'; // hvis den ligger i samme mappe som registrer_klasse.php
 
 // Sjekk at databasekoblingen finnes
 if (!$conn) {
