@@ -6,7 +6,7 @@ $pass = "5791shayo1243";
 $db   = "shayo1243";
 
 // Forsøk å koble til databasen
-$conn = new mysqli($host, $user, $pass, $db);
+$conn = new mysqli(hostname: $host, username: $user, password: $pass, database: $db);
 
 // Sjekk om tilkoblingen fungerer
 if ($conn->connect_error) {
