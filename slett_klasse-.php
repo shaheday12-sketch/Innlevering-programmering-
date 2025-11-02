@@ -16,7 +16,7 @@ $msg = null;
 $err = null;
 $antStudenter = 0;
 
-// --- HENT KLASSER FRA DATABASE ---
+// --- HENT  FRA DATABASE ---
 $sql = "SELECT klassekode, klassenavn FROM klasse ORDER BY klassekode";
 $resultat = $conn->query($sql);
 if ($resultat && $resultat->num_rows > 0) {
