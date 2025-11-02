@@ -1,4 +1,10 @@
-<?php require_once 'db.php'; ?>
+<?php 
+require_once 'db.php'; 
+
+// Slå på feilmeldinger for mysqli
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+?>
+
 <html lang="no">
 <head>
 <meta charset="utf-8">
@@ -25,18 +31,21 @@
   <?php
   if ($_SERVER["REQUEST_METHOD"] === "POST") {
       $studentnr = $_POST["studentnr"] ?? "";
+
       if ($studentnr === "") {
           echo "<div class='msg err'>Velg en student.</div>";
       } else {
-          // Slett student
+          // Slett student med prepared statement
           $stmt = $conn->prepare("DELETE FROM student WHERE studentnr=?");
           $stmt->bind_param("s", $studentnr);
           $stmt->execute();
+
           if ($stmt->affected_rows > 0) {
               echo "<div class='msg ok'>Studenten er slettet.</div>";
           } else {
               echo "<div class='msg warn'>Fant ingen slik student.</div>";
           }
+
           $stmt->close();
       }
   }
@@ -47,12 +56,14 @@
     <select id="studentnr" name="studentnr" required>
       <option value="">Velg student</option>
       <?php
-        $res = $conn->query("SELECT studentnr, fornavn, etternavn FROM student ORDER BY etternavn, fornavn");
-        while ($r = $res->fetch_assoc()) {
-            $id = htmlspecialchars($r['studentnr']);
-            $navn = htmlspecialchars($r['fornavn'] . " " . $r['etternavn']);
-            echo "<option value=\"$id\">$navn</option>";
-        }
+      if ($conn) {
+          $res = $conn->query("SELECT studentnr, fornavn, etternavn FROM student ORDER BY etternavn, fornavn");
+          while ($r = $res->fetch_assoc()) {
+              $id = htmlspecialchars($r['studentnr']);
+              $navn = htmlspecialchars($r['fornavn'] . " " . $r['etternavn']);
+              echo "<option value=\"$id\">$navn</option>";
+          }
+      }
       ?>
     </select>
     <button>Slett</button>
