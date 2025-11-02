@@ -1,9 +1,9 @@
 <?php
 // --- KOBLE TIL DATABASEN ---
-$server = "localhost";     // endre hvis du bruker annen server
-$bruker = "root";          // skriv inn brukernavnet ditt
-$passord = "";             // skriv inn passordet ditt
-$dbnavn = "skole";         // bytt til databasenavnet ditt
+$server = "b-studentsql-1.usn.no";     // endre hvis du bruker annen server
+$bruker = "shayo1243";          // skriv inn brukernavnet ditt
+$passord = "5791shayo1243";             // skriv inn passordet ditt
+$dbnavn = "shayo1243";   
 
 $conn = new mysqli($server, $bruker, $passord, $dbnavn);
 if ($conn->connect_error) {
